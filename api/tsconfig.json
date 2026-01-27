@@ -21,6 +21,6 @@
     "allowUnusedLabels": false,
     "allowUnreachableCode": false
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "src/types/express.d.ts"],
   "exclude": ["node_modules", "dist", "tests"]
 }

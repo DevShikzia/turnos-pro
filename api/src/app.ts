@@ -1,4 +1,4 @@
-import express, { Application } from 'express';
+import express, { Application, Request, Response } from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
 import pinoHttp from 'pino-http';
@@ -82,7 +82,8 @@ export function createApp(): Application {
   app.use(generalLimiter);
 
   // Health check
-  app.get('/health', (_req, res) => {
+
+  app.get('/health', (_req: Request, res: Response) => { 
     res.json({
       status: 'ok',
       timestamp: new Date().toISOString(),
