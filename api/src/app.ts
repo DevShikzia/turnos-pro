@@ -104,7 +104,7 @@ export function createApp(): Application {
   app.use('/queue', queueRoutes);
 
   // 404 handler
-  app.use((_req, res) => {
+  app.use((_req: Request, res: Response) => {
     res.status(404).json({
       error: {
         code: 'NOT_FOUND',
