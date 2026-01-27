@@ -1,0 +1,43 @@
+[build]
+  # Directorio base del proyecto
+  base = "frontend"
+  
+  # Comando de build
+  command = "npm ci && npm run build:netlify"
+  
+  # Directorio de salida (donde Angular genera los archivos)
+  publish = "dist/turnos-pro/browser"
+
+# Redirecciones para SPA (Single Page Application)
+# Todas las rutas van al index.html para que Angular Router funcione
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Headers de seguridad
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "geolocation=(), microphone=(), camera=()"
+
+# Cache para assets estáticos
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Cache para archivos JS y CSS
+[[headers]]
+  for = "/*.js"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/*.css"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
