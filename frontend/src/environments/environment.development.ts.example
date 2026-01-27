@@ -1,0 +1,8 @@
+// Copiar este archivo como environment.development.ts y configurar
+
+export const environment = {
+  production: false,
+  apiBaseUrl: 'http://localhost:3000', // URL de tu backend
+  appName: 'Turnos PRO (Dev)',
+  requestTimeoutMs: 30000,
+};
