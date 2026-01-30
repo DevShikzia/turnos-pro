@@ -177,6 +177,15 @@ class ClientsService {
 
     return client;
   }
+
+  /**
+   * Elimina clientes creados desde el kiosco con datos incompletos (cron en modo demo).
+   * Solo se llama cuando DEMO_MODE=true para limpiar "clientes nuevos" cada 10 min.
+   */
+  async cleanupIncompleteDataClients(): Promise<number> {
+    const result = await Client.deleteMany({ incompleteData: true });
+    return result.deletedCount || 0;
+  }
 }
 
 export const clientsService = new ClientsService();

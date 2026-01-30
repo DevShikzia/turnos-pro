@@ -3,6 +3,7 @@ import { logger } from '../../utils/logger.js';
 import { queueService } from './queue.service.js';
 import { CronLock } from './queue.cron-lock.js';
 import { appointmentsService } from '../appointments/appointments.service.js';
+import { clientsService } from '../clients/clients.service.js';
 import { env } from '../../config/env.js';
 
 const cronLock = new CronLock();
@@ -11,7 +12,7 @@ const cronLock = new CronLock();
  * Inicia los cron jobs de queue
  */
 export function startQueueCron(): void {
-  // En modo demo: limpieza cada 10 min solo de TURNOS demo (la fila se mantiene persistente)
+  // En modo demo: limpieza cada 10 min de turnos, fila y clientes nuevos (incompleteData)
   if (env.DEMO_MODE) {
     cron.schedule('*/10 * * * *', async () => {
       const lockKey = 'queue:cleanup:demo:10min';
@@ -20,14 +21,20 @@ export function startQueueCron(): void {
         if (!acquired) return;
 
         const deletedAppointments = await appointmentsService.cleanupDemoAppointments();
-        logger.info({ deletedAppointments }, 'Limpieza demo cada 10 min: turnos eliminados (fila persistente)');
+        const deletedTickets = await queueService.cleanupAllDemoTickets();
+        const deletedClients = await clientsService.cleanupIncompleteDataClients();
+
+        logger.info(
+          { deletedAppointments, deletedTickets, deletedClients },
+          'Limpieza demo cada 10 min: turnos, fila y clientes nuevos eliminados'
+        );
         await cronLock.releaseLock(lockKey);
       } catch (error) {
         logger.error({ err: error }, 'Error en cron limpieza demo 10 min');
         await cronLock.releaseLock(lockKey).catch(() => {});
       }
     });
-    logger.info('Cron limpieza demo cada 10 min configurado (solo turnos, fila persistente)');
+    logger.info('Cron limpieza demo cada 10 min configurado (turnos, fila y clientes nuevos)');
   }
 
   // Limpieza diaria a las 00:00 (timezone local)
