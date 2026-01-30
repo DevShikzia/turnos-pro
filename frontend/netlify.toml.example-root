@@ -1,13 +1,13 @@
+# Configuración para REPOSITORIO CON FRONTEND EN RAÍZ
+# Si tu repositorio tiene esta estructura:
+#   repo/
+#     package.json  (del frontend)
+#     src/
+#     angular.json
+
 [build]
-  # Directorio base del proyecto
-  # IMPORTANTE: Ajusta según la estructura de tu repositorio
-  # 
-  # Si el frontend está en un subdirectorio "frontend" (monorepo):
-  #   base = "frontend"
-  #
-  # Si el frontend está en la raíz del repositorio:
-  #   (comenta o elimina la línea base, o déjala vacía)
-  # base = "frontend"
+  # Sin base directory (el frontend está en la raíz)
+  # base = ""  # Comentado o eliminado
   
   # Comando de build
   command = "npm ci && npm run build:netlify"
@@ -16,7 +16,6 @@
   publish = "dist/turnos-pro/browser"
 
 # Redirecciones para SPA (Single Page Application)
-# Todas las rutas van al index.html para que Angular Router funcione
 [[redirects]]
   from = "/*"
   to = "/index.html"
@@ -38,7 +37,6 @@
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
 
-# Cache para archivos JS y CSS
 [[headers]]
   for = "/*.js"
   [headers.values]

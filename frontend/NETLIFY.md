@@ -21,9 +21,27 @@ Esta guía te ayudará a deployar el frontend de Turnos PRO en Netlify.
 
 Netlify detectará automáticamente el archivo `netlify.toml`, pero verifica que la configuración sea:
 
+#### Si tu repositorio es un MONOREPO (frontend en subdirectorio):
 - **Base directory**: `frontend`
 - **Build command**: `npm ci && npm run build:netlify`
 - **Publish directory**: `dist/turnos-pro/browser`
+
+**En el `netlify.toml`, asegúrate de tener:**
+```toml
+[build]
+  base = "frontend"
+```
+
+#### Si tu repositorio tiene el FRONTEND EN LA RAÍZ:
+- **Base directory**: (vacío o no configurado)
+- **Build command**: `npm ci && npm run build:netlify`
+- **Publish directory**: `dist/turnos-pro/browser`
+
+**En el `netlify.toml`, elimina o comenta la línea `base`:**
+```toml
+[build]
+  # base = "frontend"  # Comentado o eliminado
+```
 
 ### 3. Configurar Variables de Entorno
 
@@ -82,10 +100,16 @@ Puedes configurar esto en **Site settings** → **Build & deploy** → **Continu
 
 ## 🐛 Troubleshooting
 
+### Error: "Base directory does not exist"
+
+- Si tu repositorio tiene el frontend en la raíz, **elimina o comenta** la línea `base = "frontend"` en `netlify.toml`
+- Si tu repositorio es un monorepo, asegúrate de que el directorio `frontend` exista y contenga `package.json`
+- Verifica la estructura de tu repositorio antes de configurar el base directory
+
 ### Error: "Cannot find module"
 
-- Verifica que el **Base directory** esté configurado como `frontend`
-- Asegúrate de que `package.json` esté en el directorio `frontend`
+- Verifica que el **Base directory** esté configurado correctamente según tu estructura
+- Asegúrate de que `package.json` esté en el directorio correcto
 
 ### Variables de entorno no funcionan
 
