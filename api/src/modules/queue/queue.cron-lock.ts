@@ -31,8 +31,7 @@ const cronLockSchema = new Schema<ICronLock>(
   }
 );
 
-// Índice TTL para auto-eliminación
-cronLockSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+// expiresAt ya tiene expires: 0 en el schema (TTL), no duplicar índice
 
 const CronLockModel = mongoose.model<ICronLock>('CronLock', cronLockSchema);
 

@@ -10,12 +10,20 @@ import { PaginatedResult, AuditContext } from '../../types/common.types.js';
 import { ApiError } from '../../utils/api-error.js';
 import { auditService } from '../audit/audit.service.js';
 import { AUDIT_ACTIONS, AUDIT_ENTITIES } from '../../constants/audit-actions.js';
+import { env } from '../../config/env.js';
 
 class ClientsService {
   async create(
     input: CreateClientInput,
     context: AuditContext
   ): Promise<IClientDocument> {
+    if (env.DEMO_MODE) {
+      throw ApiError.forbidden(
+        'Modo demo: no se pueden crear más clientes. Solo está disponible el cliente de prueba.',
+        'DEMO_MODE_RESTRICTION'
+      );
+    }
+
     const client = await Client.create(input);
 
     await auditService.logCreate(

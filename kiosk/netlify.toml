@@ -7,7 +7,10 @@
   # base = "kiosk"
   # Si el kiosk está en la raíz del repositorio, deja esta línea comentada
   
+  # Build command: instala dependencias y genera el sitio estático
   command = "npm ci && npm run build"
+  
+  # Directorio de salida (Astro genera dist/)
   publish = "dist"
 
 # Redirecciones SPA (por si usas rutas)

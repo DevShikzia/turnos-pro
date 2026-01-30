@@ -38,6 +38,7 @@ export interface IQueueTicket {
   deskId?: string; // "VENT-5"
   receptionistId?: Types.ObjectId;
   professionalId?: Types.ObjectId;
+  isDemo?: boolean; // true si se creó en modo demo (para limpieza por cron)
   createdAt: Date;
   updatedAt: Date;
 }

@@ -47,10 +47,9 @@ const clientSchema = new Schema<IClientDocument>(
   }
 );
 
-// Índices
+// Índices (dni ya tiene unique: true en el schema, no duplicar)
 clientSchema.index({ fullName: 'text' });
 clientSchema.index({ isActive: 1 });
 clientSchema.index({ phone: 1 });
-clientSchema.index({ dni: 1 }, { unique: true });
 
 export const Client = mongoose.model<IClientDocument>('Client', clientSchema);

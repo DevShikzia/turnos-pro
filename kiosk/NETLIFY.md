@@ -4,6 +4,21 @@ Guía para publicar el kiosk de Turnos PRO en Netlify.
 
 ---
 
+## Build command
+
+En Netlify usa:
+
+```bash
+npm ci && npm run build
+```
+
+- `npm ci`: instala dependencias desde `package-lock.json`
+- `npm run build`: ejecuta `astro build` y genera los archivos en `dist/`
+
+Si configuras desde el Dashboard, en **Build & deploy** → **Build settings** → **Build command** pega exactamente: `npm ci && npm run build`.
+
+---
+
 ## Base directory
 
 Depende de cómo esté tu repositorio:

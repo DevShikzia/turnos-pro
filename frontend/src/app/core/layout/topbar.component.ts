@@ -2,6 +2,7 @@ import { Component, inject, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { StorageService } from '../services/storage.service';
 import { UserDTO } from '@shared/models/api.types';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-topbar',
@@ -21,6 +22,10 @@ import { UserDTO } from '@shared/models/api.types';
 
       <!-- Spacer -->
       <div class="flex-1"></div>
+
+      @if (environment.demoMode) {
+        <span class="demo-badge">Modo demo</span>
+      }
 
       <!-- User Info -->
       <div class="user-info">
@@ -114,10 +119,21 @@ import { UserDTO } from '@shared/models/api.types';
       font-size: 0.75rem;
       color: var(--color-text-muted);
     }
+
+    .demo-badge {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: white;
+      background: linear-gradient(90deg, #6366f1, #8b5cf6);
+      padding: 4px 10px;
+      border-radius: var(--radius-md);
+      margin-right: var(--spacing-sm);
+    }
   `],
 })
 export class TopbarComponent {
   private storage = inject(StorageService);
+  readonly environment = environment;
 
   toggleSidebar = output<void>();
   toggleMobileMenu = output<void>();

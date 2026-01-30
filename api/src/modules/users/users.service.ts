@@ -11,12 +11,20 @@ import { ApiError } from '../../utils/api-error.js';
 import { auditService } from '../audit/audit.service.js';
 import { AUDIT_ACTIONS, AUDIT_ENTITIES } from '../../constants/audit-actions.js';
 import { Role } from '../../constants/roles.js';
+import { env } from '../../config/env.js';
 
 class UsersService {
   async create(
     input: CreateUserInput,
     context: AuditContext
   ): Promise<IUserDocument> {
+    if (env.DEMO_MODE) {
+      throw ApiError.forbidden(
+        'Modo demo: no se pueden crear más usuarios. Solo está disponible el usuario de prueba.',
+        'DEMO_MODE_RESTRICTION'
+      );
+    }
+
     // Verificar si ya existe un usuario con ese email
     const existing = await User.findOne({ email: input.email });
     if (existing) {

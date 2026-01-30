@@ -15,6 +15,10 @@ const envSchema = z.object({
   CORS_ORIGIN: z.string().default('http://localhost:4200,http://localhost:3000'),
   RATE_LIMIT_WINDOW_MS: z.string().transform(Number).default('900000'),
   RATE_LIMIT_MAX_REQUESTS: z.string().transform(Number).default('100'),
+  // Modo demo: solo usuario y cliente de prueba, no se crean nuevos
+  DEMO_MODE: z.string().transform((v) => v === 'true').default('false'),
+  DEMO_USER_ID: z.string().optional(), // ID del usuario recepcionista de prueba
+  DEMO_CLIENT_ID: z.string().optional(), // ID del cliente de prueba
 });
 
 const parsed = envSchema.safeParse(process.env);
@@ -30,3 +34,4 @@ export const env = parsed.data;
 export const isDev = env.NODE_ENV === 'development';
 export const isProd = env.NODE_ENV === 'production';
 export const isTest = env.NODE_ENV === 'test';
+export const isDemoMode = env.DEMO_MODE === true;

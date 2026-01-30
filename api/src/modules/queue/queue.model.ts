@@ -113,6 +113,10 @@ const queueTicketSchema = new Schema<IQueueTicketDocument>(
       type: Schema.Types.ObjectId,
       ref: 'Professional',
     },
+    isDemo: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

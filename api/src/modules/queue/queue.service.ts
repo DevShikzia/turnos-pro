@@ -23,11 +23,13 @@ import {
   emitTicketUpdated,
   emitDeskAssigned,
 } from './queue.socket.js';
+import { env } from '../../config/env.js';
 
 class QueueService {
   /**
    * Genera un ticket desde el kiosco
-   * Detecta si tiene turno para hoy y genera T o C
+   * Detecta si tiene turno para hoy y genera T o C.
+   * No permite más de un ticket pendiente (waiting) por DNI por día.
    */
   async createTicket(
     input: CreateTicketInput,
@@ -42,7 +44,7 @@ class QueueService {
     const startOfDay = now.startOf('day').toJSDate();
     const endOfDay = now.endOf('day').toJSDate();
 
-    // Verificar si ya existe un ticket waiting del mismo DNI hoy
+    // No permitir otro ticket si ya tiene uno pendiente (waiting) hoy
     const existingTicket = await QueueTicket.findOne({
       dateKey,
       locationId: locId,
@@ -51,7 +53,10 @@ class QueueService {
     });
 
     if (existingTicket) {
-      return existingTicket;
+      throw ApiError.badRequest(
+        'Ya tiene un turno pendiente para hoy. Espere a ser atendido antes de solicitar otro.',
+        'PENDING_TICKET_EXISTS'
+      );
     }
 
     // Buscar si el cliente tiene un turno para hoy
@@ -95,7 +100,7 @@ class QueueService {
     const seq = counter.seq;
     const code = `${ticketType}${String(seq).padStart(3, '0')}`;
 
-    // Crear ticket
+    // Crear ticket (marcar como demo si corresponde, para limpieza por cron)
     const ticket = await QueueTicket.create({
       dateKey,
       locationId: locId,
@@ -105,6 +110,7 @@ class QueueService {
       dni,
       appointmentId,
       status: 'waiting',
+      isDemo: env.DEMO_MODE || false,
     });
 
     // Emitir evento Socket.io
@@ -417,6 +423,23 @@ class QueueService {
     })
       .populate('receptionistId', 'email')
       .sort({ deskId: 1 });
+  }
+
+  /**
+   * Limpia tickets marcados como demo (cron job).
+   * Elimina todos los tickets con isDemo=true de días anteriores.
+   */
+  async cleanupDemoTickets(): Promise<number> {
+    const todayKey = DateTime.now()
+      .setZone('America/Argentina/Buenos_Aires')
+      .toFormat('yyyy-MM-dd');
+
+    const result = await QueueTicket.deleteMany({
+      isDemo: true,
+      dateKey: { $lt: todayKey },
+    });
+
+    return result.deletedCount || 0;
   }
 
   /**

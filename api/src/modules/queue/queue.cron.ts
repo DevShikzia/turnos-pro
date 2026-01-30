@@ -25,6 +25,10 @@ export function startQueueCron(): void {
 
       logger.info('Iniciando limpieza diaria de queue...');
 
+      // Limpiar tickets de modo demo (días anteriores)
+      const deletedDemoTickets = await queueService.cleanupDemoTickets();
+      logger.info({ deletedDemoTickets }, 'Tickets demo eliminados');
+
       // Limpiar tickets antiguos (> 7 días)
       const deletedTickets = await queueService.cleanupOldTickets(7);
       logger.info({ deletedTickets }, 'Tickets antiguos eliminados');

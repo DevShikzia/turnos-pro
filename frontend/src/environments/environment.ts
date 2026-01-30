@@ -7,4 +7,6 @@ export const environment = {
   appName: 'Turnos PRO',
   requestTimeoutMs: 30000,
   kioskUrl: 'http://localhost:3000',
+  demoMode: false,
+  demoUserEmail: '',
 };

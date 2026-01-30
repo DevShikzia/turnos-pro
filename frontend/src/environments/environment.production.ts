@@ -4,4 +4,6 @@ export const environment = {
   appName: 'Turnos PRO',
   requestTimeoutMs: 30000,
   kioskUrl: 'https://kiosk.tudominio.com',
+  demoMode: false,
+  demoUserEmail: '',
 };

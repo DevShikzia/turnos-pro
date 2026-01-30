@@ -8,6 +8,7 @@ import { PasswordModule } from 'primeng/password';
 import { ToastModule } from 'primeng/toast';
 import { AuthApi } from './auth.api';
 import { StorageService } from '@core/services/storage.service';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-login',
@@ -23,6 +24,15 @@ import { StorageService } from '@core/services/storage.service';
   ],
   template: `
     <div class="login-container">
+      @if (environment.demoMode) {
+        <div class="demo-banner">
+          <i class="pi pi-info-circle"></i>
+          <span>Modo demo: solo usuario de prueba. No se pueden crear usuarios ni clientes nuevos.</span>
+          @if (environment.demoUserEmail) {
+            <small>Usuario: {{ environment.demoUserEmail }}</small>
+          }
+        </div>
+      }
       <div class="login-card">
         <!-- Logo -->
         <div class="login-header">
@@ -87,8 +97,29 @@ import { StorageService } from '@core/services/storage.service';
     <p-toast />
   `,
   styles: [`
+    .demo-banner {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(90deg, #6366f1 0%, #8b5cf6 100%);
+      color: white;
+      padding: var(--spacing-sm) var(--spacing-lg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--spacing-sm);
+      font-size: 0.875rem;
+      z-index: 1000;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+    .demo-banner small {
+      opacity: 0.9;
+      margin-left: var(--spacing-sm);
+    }
     .login-container {
       min-height: 100vh;
+      padding-top: 48px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -180,10 +211,11 @@ export class LoginPage {
   private storage = inject(StorageService);
   private router = inject(Router);
 
+  readonly environment = environment;
   loading = signal(false);
 
   form = this.fb.nonNullable.group({
-    email: ['', [Validators.required, Validators.email]],
+    email: [environment.demoMode && environment.demoUserEmail ? environment.demoUserEmail : '', [Validators.required, Validators.email]],
     password: ['', Validators.required],
   });
 

@@ -14,6 +14,8 @@ const apiBaseUrl = process.env.API_BASE_URL || 'https://api.tudominio.com';
 const appName = process.env.APP_NAME || 'Turnos PRO';
 const kioskUrl = process.env.KIOSK_URL || 'https://kiosk.tudominio.com';
 const requestTimeoutMs = process.env.REQUEST_TIMEOUT_MS || '30000';
+const demoMode = process.env.DEMO_MODE === 'true';
+const demoUserEmail = process.env.DEMO_USER_EMAIL || '';
 
 // Generar el contenido del archivo
 const content = `// Este archivo se genera automáticamente durante el build en Netlify
@@ -25,6 +27,8 @@ export const environment = {
   appName: '${appName}',
   requestTimeoutMs: ${requestTimeoutMs},
   kioskUrl: '${kioskUrl}',
+  demoMode: ${demoMode},
+  demoUserEmail: '${demoUserEmail.replace(/'/g, "\\'")}',
 };
 `;
 
@@ -35,3 +39,5 @@ console.log('✅ Archivo environment.production.ts generado desde variables de e
 console.log(`   API Base URL: ${apiBaseUrl}`);
 console.log(`   App Name: ${appName}`);
 console.log(`   Kiosk URL: ${kioskUrl}`);
+console.log(`   Demo mode: ${demoMode}`);
+if (demoMode && demoUserEmail) console.log(`   Demo user email: ${demoUserEmail}`);
