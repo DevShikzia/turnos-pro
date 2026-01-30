@@ -13,10 +13,11 @@ import { PageHeaderComponent } from '@shared/ui/page-header/page-header.componen
 import { EmptyStateComponent } from '@shared/ui/empty-state/empty-state.component';
 import { LoadingComponent } from '@shared/ui/loading/loading.component';
 import { QueueApi } from './queue.api';
-import { SocketService, QueueTicketEvent } from '@core/services/socket.service';
+import { StorageService } from '@core/services/storage.service';
+import { SocketService } from '@core/services/socket.service';
 import { QueueTicketDTO, TicketStatus, TicketType } from '@shared/models/api.types';
 import { QueueDesksComponent } from './queue-desks.component';
-import { environment } from '../../../environments/environment';
+import { environment } from '@env';
 
 interface StatusOption {
   label: string;
@@ -286,6 +287,7 @@ export class QueuePage implements OnInit, OnDestroy {
   private queueApi = inject(QueueApi);
   private socketService = inject(SocketService);
   private messageService = inject(MessageService);
+  private storage = inject(StorageService);
 
   tickets = signal<QueueTicketDTO[]>([]);
   loading = signal(false);
@@ -307,55 +309,107 @@ export class QueuePage implements OnInit, OnDestroy {
     { label: 'Consulta', value: 'C' },
   ];
 
+  private readonly DESK_STORAGE_KEY = 'queue_selected_desk';
+
   ngOnInit(): void {
-    // Cargar ventanilla desde sessionStorage si existe
-    const savedDesk = sessionStorage.getItem('queue_selected_desk');
-    if (savedDesk) {
-      this.selectedDesk.set(savedDesk);
-      // Verificar que la asignación sigue activa en el backend
-      this.verifyDeskAssignment(savedDesk);
-    }
-    
-    this.loadTickets();
-    this.connectSocket();
+    this.loadDeskFromApiThenTickets();
+  }
+
+  private loadDeskFromApiThenTickets(): void {
+    const user = this.storage.getUser<{ _id?: string }>();
+    const userId = user?._id ?? null;
+
+    this.queueApi.getDesks('main').subscribe({
+      next: (response) => {
+        const myDesk = response.data.find((d) => {
+          const rid = typeof d.receptionistId === 'string' ? d.receptionistId : (d.receptionistId as { _id?: string })?._id;
+          return rid === userId && d.active;
+        });
+        const savedDesk = this.storage.getLocalItem(this.DESK_STORAGE_KEY);
+
+        if (myDesk) {
+          this.selectedDesk.set(myDesk.deskId);
+          this.storage.setLocalItem(this.DESK_STORAGE_KEY, myDesk.deskId);
+          this.loadTickets();
+          this.connectSocket();
+          return;
+        }
+        if (savedDesk) {
+          this.selectedDesk.set(savedDesk);
+          this.verifyDeskAssignment(savedDesk);
+        } else {
+          this.loadTickets();
+          this.connectSocket();
+        }
+      },
+      error: () => {
+        const savedDesk = this.storage.getLocalItem(this.DESK_STORAGE_KEY);
+        if (savedDesk) {
+          this.selectedDesk.set(savedDesk);
+          this.verifyDeskAssignment(savedDesk);
+        } else {
+          this.loadTickets();
+          this.connectSocket();
+        }
+      },
+    });
   }
 
   private verifyDeskAssignment(deskId: string): void {
     this.queueApi.getDesks('main').subscribe({
       next: (response) => {
+        const user = this.storage.getUser<{ _id?: string }>();
+        const userId = user?._id ?? null;
         const desk = response.data.find((d) => d.deskId === deskId && d.active);
-        const user = JSON.parse(localStorage.getItem('turnos_user') || '{}');
-        
-        // Si la ventanilla está asignada a otro usuario, limpiar
-        if (desk && desk.receptionistId !== user._id) {
-          sessionStorage.removeItem('queue_selected_desk');
+        const rid = desk ? (typeof desk.receptionistId === 'string' ? desk.receptionistId : (desk.receptionistId as { _id?: string })?._id) : null;
+
+        if (desk && rid !== userId) {
+          this.storage.removeLocalItem(this.DESK_STORAGE_KEY);
           this.selectedDesk.set(null);
           this.messageService.add({
             severity: 'warn',
             summary: 'Ventanilla no disponible',
             detail: 'La ventanilla fue asignada a otro agente',
           });
-        } else if (!desk) {
-          // Si no existe la asignación, intentar reasignar
+          this.loadTickets();
+          this.connectSocket();
+          return;
+        }
+        if (!desk) {
           this.queueApi.assignDesk({ deskId, locationId: 'main' }).subscribe({
             next: () => {
+              this.storage.setLocalItem(this.DESK_STORAGE_KEY, deskId);
               this.messageService.add({
                 severity: 'success',
                 summary: 'Ventanilla restaurada',
                 detail: `Ventanilla ${deskId} restaurada`,
               });
+              this.loadTickets();
               this.connectSocket();
             },
-            error: () => {
-              // Si falla, limpiar
-              sessionStorage.removeItem('queue_selected_desk');
-              this.selectedDesk.set(null);
+            error: (err) => {
+              const code = err?.error?.error?.code;
+              if (code === 'DESK_ALREADY_ASSIGNED') {
+                this.storage.removeLocalItem(this.DESK_STORAGE_KEY);
+                this.selectedDesk.set(null);
+                this.messageService.add({
+                  severity: 'warn',
+                  summary: 'Ventanilla ocupada',
+                  detail: 'Esa ventanilla ya está asignada a otro agente',
+                });
+              }
+              this.loadTickets();
+              this.connectSocket();
             },
           });
+          return;
         }
+        this.loadTickets();
+        this.connectSocket();
       },
       error: () => {
-        // Si falla la verificación, mantener la selección
+        this.loadTickets();
+        this.connectSocket();
       },
     });
   }
@@ -368,11 +422,20 @@ export class QueuePage implements OnInit, OnDestroy {
     this.socketService.connect('main', this.selectedDesk() || undefined);
 
     this.socketService.onTicketCreated((ticket) => {
-      this.loadTickets();
+      const id = (ticket as { id?: string; _id?: string }).id ?? (ticket as QueueTicketDTO)._id;
+      if (!id) return;
+      this.tickets.update((list) => {
+        if (list.some((x) => x._id === id)) return list;
+        return [{ ...ticket, _id: id } as QueueTicketDTO, ...list];
+      });
     });
 
     this.socketService.onTicketUpdated((ticket) => {
-      this.loadTickets();
+      const id = (ticket as { id?: string; _id?: string }).id ?? (ticket as QueueTicketDTO)._id;
+      if (!id) return;
+      this.tickets.update((list) =>
+        list.map((x) => (x._id === id ? { ...x, ...ticket, _id: x._id } : x))
+      );
     });
   }
 
@@ -412,13 +475,11 @@ export class QueuePage implements OnInit, OnDestroy {
   }
 
   onDeskSelected(deskId: string | null): void {
-    // Actualizar signal primero
     this.selectedDesk.set(deskId);
-    
+
     if (deskId) {
-      // Guardar en sessionStorage inmediatamente
-      sessionStorage.setItem('queue_selected_desk', deskId);
-      
+      this.storage.setLocalItem(this.DESK_STORAGE_KEY, deskId);
+
       this.queueApi.assignDesk({ deskId, locationId: 'main' }).subscribe({
         next: () => {
           this.messageService.add({
@@ -426,25 +487,25 @@ export class QueuePage implements OnInit, OnDestroy {
             summary: 'Ventanilla asignada',
             detail: `Ventanilla ${deskId} asignada`,
           });
-          this.connectSocket(); // Reconectar con nuevo deskId
+          this.connectSocket();
         },
         error: (error) => {
-          // Si falla, limpiar selección
           this.selectedDesk.set(null);
-          sessionStorage.removeItem('queue_selected_desk');
-          
-          const errorMsg = error?.error?.error?.message || 'No se pudo asignar la ventanilla';
+          this.storage.removeLocalItem(this.DESK_STORAGE_KEY);
+          const code = error?.error?.error?.code;
+          const msg = code === 'DESK_ALREADY_ASSIGNED'
+            ? 'Esta ventanilla ya está asignada a otro agente'
+            : (error?.error?.error?.message || 'No se pudo asignar la ventanilla');
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
-            detail: errorMsg,
+            detail: msg,
           });
         },
       });
     } else {
-      // Desasignar ventanilla
-      sessionStorage.removeItem('queue_selected_desk');
-      this.connectSocket(); // Reconectar sin deskId
+      this.storage.removeLocalItem(this.DESK_STORAGE_KEY);
+      this.connectSocket();
     }
   }
 
@@ -473,7 +534,11 @@ export class QueuePage implements OnInit, OnDestroy {
             life: 8000,
           });
         }
-        this.loadTickets();
+        if (response.data) {
+          this.tickets.update((list) =>
+            list.map((t) => (t._id === response.data!._id ? { ...t, ...response.data! } : t))
+          );
+        }
       },
       error: () => {
         this.messageService.add({
@@ -487,13 +552,17 @@ export class QueuePage implements OnInit, OnDestroy {
 
   serveTicket(ticket: QueueTicketDTO): void {
     this.queueApi.serve(ticket._id).subscribe({
-      next: () => {
+      next: (response) => {
         this.messageService.add({
           severity: 'success',
           summary: 'En servicio',
           detail: `${ticket.code} en atención`,
         });
-        this.loadTickets();
+        if (response.data) {
+          this.tickets.update((list) =>
+            list.map((t) => (t._id === response.data!._id ? { ...t, ...response.data! } : t))
+          );
+        }
       },
       error: () => {
         this.messageService.add({
@@ -507,13 +576,17 @@ export class QueuePage implements OnInit, OnDestroy {
 
   doneTicket(ticket: QueueTicketDTO): void {
     this.queueApi.done(ticket._id).subscribe({
-      next: () => {
+      next: (response) => {
         this.messageService.add({
           severity: 'success',
           summary: 'Completado',
           detail: `${ticket.code} completado`,
         });
-        this.loadTickets();
+        if (response.data) {
+          this.tickets.update((list) =>
+            list.map((t) => (t._id === response.data!._id ? { ...t, ...response.data! } : t))
+          );
+        }
       },
       error: () => {
         this.messageService.add({
@@ -527,13 +600,17 @@ export class QueuePage implements OnInit, OnDestroy {
 
   cancelTicket(ticket: QueueTicketDTO): void {
     this.queueApi.cancel(ticket._id).subscribe({
-      next: () => {
+      next: (response) => {
         this.messageService.add({
           severity: 'success',
           summary: 'Cancelado',
           detail: `${ticket.code} cancelado`,
         });
-        this.loadTickets();
+        if (response.data) {
+          this.tickets.update((list) =>
+            list.map((t) => (t._id === response.data!._id ? { ...t, ...response.data! } : t))
+          );
+        }
       },
       error: () => {
         this.messageService.add({

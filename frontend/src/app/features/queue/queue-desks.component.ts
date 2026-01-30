@@ -92,42 +92,41 @@ export class QueueDesksComponent implements OnInit {
   private readonly DESK_STORAGE_KEY = 'queue_selected_desk';
 
   constructor() {
-    // Efecto para sincronizar cuando cambia el input del padre
     effect(() => {
       const desk = this.selectedDesk();
       if (desk !== this.selectedDeskValue()) {
         this.selectedDeskValue.set(desk);
-        // Si el padre establece un valor, guardarlo en sessionStorage
         if (desk) {
-          this.storage.setSessionItem(this.DESK_STORAGE_KEY, desk);
+          this.storage.setLocalItem(this.DESK_STORAGE_KEY, desk);
         } else {
-          this.storage.removeSessionItem(this.DESK_STORAGE_KEY);
+          this.storage.removeLocalItem(this.DESK_STORAGE_KEY);
         }
       }
     });
   }
 
   ngOnInit(): void {
-    // Obtener usuario actual
-    const user = this.storage.getUser<any>();
-    this.currentUserId = user?._id || null;
+    const user = this.storage.getUser<{ _id?: string }>();
+    this.currentUserId = user?._id ?? null;
 
-    // Priorizar el input del padre, luego sessionStorage
     if (this.selectedDesk()) {
       this.selectedDeskValue.set(this.selectedDesk());
     } else {
-      // Cargar ventanilla desde sessionStorage si no viene del padre
-      const savedDesk = this.storage.getSessionItem(this.DESK_STORAGE_KEY);
+      const savedDesk = this.storage.getLocalItem(this.DESK_STORAGE_KEY);
       if (savedDesk) {
         this.selectedDeskValue.set(savedDesk);
-        // Emitir para que el padre se sincronice
-        setTimeout(() => {
-          this.deskSelected.emit(savedDesk);
-        }, 0);
+        setTimeout(() => this.deskSelected.emit(savedDesk), 0);
       }
     }
 
     this.loadDesks();
+  }
+
+  private getReceptionistId(d: DeskDTO): string | null {
+    if (!d.receptionistId) return null;
+    return typeof d.receptionistId === 'string'
+      ? d.receptionistId
+      : (d.receptionistId as { _id?: string })?._id ?? null;
   }
 
   loadDesks(): void {
@@ -140,9 +139,8 @@ export class QueueDesksComponent implements OnInit {
         const currentDesk = this.selectedDeskValue();
         if (currentDesk) {
           const isStillAvailable = !this.desks().some(
-            (d) => d.deskId === currentDesk && d.active && d.receptionistId !== this.currentUserId
+            (d) => d.deskId === currentDesk && d.active && this.getReceptionistId(d) !== this.currentUserId
           );
-          
           if (!isStillAvailable) {
             this.messageService.add({
               severity: 'warn',
@@ -162,7 +160,7 @@ export class QueueDesksComponent implements OnInit {
 
   generateDeskOptions(): void {
     const assignedDesks = this.desks()
-      .filter((d) => d.active && d.receptionistId !== this.currentUserId)
+      .filter((d) => d.active && this.getReceptionistId(d) !== this.currentUserId)
       .map((d) => d.deskId);
 
     // Generar opciones de ventanillas (VENT-1 a VENT-20)
@@ -188,7 +186,7 @@ export class QueueDesksComponent implements OnInit {
     if (deskId) {
       // Verificar si está ocupada
       const isOccupied = this.desks().some(
-        (d) => d.deskId === deskId && d.active && d.receptionistId !== this.currentUserId
+        (d) => d.deskId === deskId && d.active && this.getReceptionistId(d) !== this.currentUserId
       );
 
       if (isOccupied) {
@@ -202,11 +200,9 @@ export class QueueDesksComponent implements OnInit {
         return;
       }
 
-      // Guardar en sessionStorage
-      this.storage.setSessionItem(this.DESK_STORAGE_KEY, deskId);
+      this.storage.setLocalItem(this.DESK_STORAGE_KEY, deskId);
     } else {
-      // Limpiar sessionStorage
-      this.storage.removeSessionItem(this.DESK_STORAGE_KEY);
+      this.storage.removeLocalItem(this.DESK_STORAGE_KEY);
     }
 
     this.deskSelected.emit(deskId);
@@ -214,8 +210,8 @@ export class QueueDesksComponent implements OnInit {
 
   clearDesk(): void {
     this.selectedDeskValue.set(null);
-    this.storage.removeSessionItem(this.DESK_STORAGE_KEY);
+    this.storage.removeLocalItem(this.DESK_STORAGE_KEY);
     this.deskSelected.emit(null);
-    this.loadDesks(); // Recargar para actualizar opciones
+    this.loadDesks();
   }
 }

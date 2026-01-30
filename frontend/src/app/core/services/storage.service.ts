@@ -57,4 +57,17 @@ export class StorageService {
   removeSessionItem(key: string): void {
     sessionStorage.removeItem(key);
   }
+
+  // Local Storage helpers (persiste al cerrar el navegador)
+  setLocalItem(key: string, value: string): void {
+    localStorage.setItem(key, value);
+  }
+
+  getLocalItem(key: string): string | null {
+    return localStorage.getItem(key);
+  }
+
+  removeLocalItem(key: string): void {
+    localStorage.removeItem(key);
+  }
 }

@@ -414,7 +414,8 @@ class QueueService {
   }
 
   /**
-   * Asigna una ventanilla a un recepcionista
+   * Asigna una ventanilla a un recepcionista.
+   * Si la ventanilla ya está asignada a otro usuario activo, devuelve conflicto.
    */
   async assignDesk(
     input: AssignDeskInput,
@@ -422,6 +423,19 @@ class QueueService {
   ): Promise<IDeskAssignmentDocument> {
     const { locationId, deskId } = input;
     const locId = locationId || 'main';
+
+    const existing = await DeskAssignment.findOne({
+      locationId: locId,
+      deskId,
+      active: true,
+    }).lean();
+
+    if (existing && existing.receptionistId.toString() !== context.actorId.toString()) {
+      throw ApiError.conflict(
+        'Esta ventanilla ya está asignada a otro agente',
+        'DESK_ALREADY_ASSIGNED'
+      );
+    }
 
     // Desactivar desk anterior de esta recepcionista
     await DeskAssignment.updateMany(
