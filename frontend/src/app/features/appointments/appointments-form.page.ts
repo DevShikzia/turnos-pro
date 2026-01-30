@@ -152,14 +152,14 @@ interface SlotOption {
                     } @else if (professionalAvailability()?.weekly?.length > 0) {
                       <div class="availability-schedule">
                         <div class="availability-days">
-                          @for (day of professionalAvailability().weekly; track day.dayOfWeek) {
+                          @for (day of professionalAvailability().weekly; track day.weekday) {
                             <div class="availability-day">
-                              <span class="day-name">{{ getDayName(day.dayOfWeek) }}</span>
+                              <span class="day-name">{{ getDayName(day.weekday) }}</span>
                               @if (day.slots && day.slots.length > 0) {
                                 <div class="day-slots">
-                                  @for (slot of day.slots; track slot.start) {
+                                  @for (slot of day.slots; track slot.startTime + slot.endTime) {
                                     <span class="slot-badge">
-                                      {{ formatTime(slot.start) }} - {{ formatTime(slot.end) }}
+                                      {{ formatTime(slot.startTime) }} - {{ formatTime(slot.endTime) }}
                                     </span>
                                   }
                                 </div>
@@ -693,13 +693,25 @@ export class AppointmentsFormPage implements OnInit {
     });
   }
 
-  getDayName(dayOfWeek: number): string {
+  /** weekday en formato ISO: 1 = Lunes, 7 = Domingo */
+  getDayName(weekday: number): string {
     const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-    return days[dayOfWeek] || '';
+    if (weekday >= 1 && weekday <= 7) {
+      return days[weekday === 7 ? 0 : weekday];
+    }
+    return '';
   }
 
-  formatTime(time: string): string {
-    return DateTime.fromISO(`2000-01-01T${time}`).toFormat('HH:mm');
+  /** Formatea hora "HH:mm" a "HH:mm" (válida y evita Invalid DateTime) */
+  formatTime(time: string | undefined | null): string {
+    if (time == null || time === '') {
+      return '--:--';
+    }
+    const dt = DateTime.fromISO(`2000-01-01T${time}`, { zone: 'utc' });
+    if (!dt.isValid) {
+      return String(time);
+    }
+    return dt.toFormat('HH:mm');
   }
 
   onDateChange(): void {
