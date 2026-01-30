@@ -6,4 +6,5 @@ export const environment = {
   kioskUrl: 'https://kiosk.tudominio.com',
   demoMode: false,
   demoUserEmail: '',
+  demoUserPassword: '',
 };

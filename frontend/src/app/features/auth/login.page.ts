@@ -215,8 +215,14 @@ export class LoginPage {
   loading = signal(false);
 
   form = this.fb.nonNullable.group({
-    email: [environment.demoMode && environment.demoUserEmail ? environment.demoUserEmail : '', [Validators.required, Validators.email]],
-    password: ['', Validators.required],
+    email: [
+      environment.demoMode && environment.demoUserEmail ? environment.demoUserEmail : '',
+      [Validators.required, Validators.email],
+    ],
+    password: [
+      environment.demoMode && environment.demoUserPassword ? environment.demoUserPassword : '',
+      Validators.required,
+    ],
   });
 
   onSubmit(): void {

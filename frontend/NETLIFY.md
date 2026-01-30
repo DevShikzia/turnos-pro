@@ -61,7 +61,8 @@ En la configuración del sitio en Netlify, ve a **Site settings** → **Environm
 | `APP_NAME` | Nombre de la aplicación | `Turnos PRO` |
 | `REQUEST_TIMEOUT_MS` | Timeout de requests en milisegundos | `30000` |
 | `DEMO_MODE` | Si es `true`, muestra banner "Modo demo" y aviso en login | `false` |
-| `DEMO_USER_EMAIL` | Email del usuario de prueba (solo se muestra en login, no la contraseña) | *(vacío)* |
+| `DEMO_USER_EMAIL` | Email del usuario de prueba (se pre-carga en el login) | *(vacío)* |
+| `DEMO_USER_PASSWORD` | Contraseña del usuario de prueba (se pre-carga en el login en modo demo) | *(vacío)* |
 
 ### 4. Ejemplo de Configuración
 
@@ -79,8 +80,9 @@ API_BASE_URL=https://turnos-pro-api.onrender.com
 KIOSK_URL=https://turnos-pro-kiosk.netlify.app
 DEMO_MODE=true
 DEMO_USER_EMAIL=recepcionista@demo.com
+DEMO_USER_PASSWORD=tu_contraseña_demo
 ```
-La API debe tener `DEMO_MODE=true` y los IDs de usuario/cliente en Render. Ver `api/DEMO.md`.
+La API debe tener `DEMO_MODE=true` y los IDs de usuario/cliente en Render. Ver `api/DEMO.md`. En modo demo, email y contraseña se cargan automáticamente en el login.
 
 ### 5. Deploy
 

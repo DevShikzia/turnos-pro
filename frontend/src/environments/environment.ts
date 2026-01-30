@@ -9,4 +9,5 @@ export const environment = {
   kioskUrl: 'http://localhost:3000',
   demoMode: false,
   demoUserEmail: '',
+  demoUserPassword: '',
 };
