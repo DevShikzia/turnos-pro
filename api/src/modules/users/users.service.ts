@@ -99,6 +99,12 @@ class UsersService {
     input: UpdateUserInput,
     context: AuditContext
   ): Promise<IUserDocument> {
+    if (env.DEMO_MODE) {
+      throw ApiError.forbidden(
+        'Modo demo: no se pueden editar usuarios.',
+        'DEMO_MODE_RESTRICTION'
+      );
+    }
     const user = await this.findById(id);
     const before = { email: user.email, role: user.role, isActive: user.isActive };
 
@@ -133,6 +139,12 @@ class UsersService {
   }
 
   async delete(id: string, context: AuditContext): Promise<IUserDocument> {
+    if (env.DEMO_MODE) {
+      throw ApiError.forbidden(
+        'Modo demo: no se pueden desactivar usuarios.',
+        'DEMO_MODE_RESTRICTION'
+      );
+    }
     const user = await this.findById(id);
     const before = { email: user.email, role: user.role, isActive: user.isActive };
 

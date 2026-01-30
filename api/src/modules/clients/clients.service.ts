@@ -125,6 +125,12 @@ class ClientsService {
     input: UpdateClientInput,
     context: AuditContext
   ): Promise<IClientDocument> {
+    if (env.DEMO_MODE) {
+      throw ApiError.forbidden(
+        'Modo demo: no se pueden editar clientes.',
+        'DEMO_MODE_RESTRICTION'
+      );
+    }
     const client = await this.findById(id);
     const before = client.toObject();
 
@@ -148,6 +154,12 @@ class ClientsService {
   }
 
   async delete(id: string, context: AuditContext): Promise<IClientDocument> {
+    if (env.DEMO_MODE) {
+      throw ApiError.forbidden(
+        'Modo demo: no se pueden desactivar clientes.',
+        'DEMO_MODE_RESTRICTION'
+      );
+    }
     const client = await this.findById(id);
     const before = client.toObject();
 

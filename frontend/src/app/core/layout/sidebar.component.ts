@@ -2,6 +2,7 @@ import { Component, input, output, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { PermissionService } from '../services/permission.service';
+import { environment } from '../../../environments/environment';
 
 interface NavItem {
   label: string;
@@ -9,6 +10,8 @@ interface NavItem {
   route: string;
   adminStaffOnly?: boolean;
   adminOnly?: boolean;
+  /** Si está definido, es un enlace externo (turnero) en lugar de ruta interna */
+  externalUrl?: string;
 }
 
 @Component({
@@ -35,17 +38,31 @@ interface NavItem {
       <!-- Navigation -->
       <nav class="sidebar-nav">
         @for (item of visibleNavItems(); track item.route) {
-          <a
-            class="nav-item"
-            [routerLink]="item.route"
-            routerLinkActive="active"
-            [routerLinkActiveOptions]="{ exact: item.route === '/dashboard' }"
-          >
-            <i class="pi" [class]="item.icon"></i>
-            @if (!collapsed()) {
-              <span class="nav-label">{{ item.label }}</span>
-            }
-          </a>
+          @if (item.externalUrl) {
+            <a
+              class="nav-item"
+              [href]="item.externalUrl"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <i class="pi" [class]="item.icon"></i>
+              @if (!collapsed()) {
+                <span class="nav-label">{{ item.label }}</span>
+              }
+            </a>
+          } @else {
+            <a
+              class="nav-item"
+              [routerLink]="item.route"
+              routerLinkActive="active"
+              [routerLinkActiveOptions]="{ exact: item.route === '/dashboard' }"
+            >
+              <i class="pi" [class]="item.icon"></i>
+              @if (!collapsed()) {
+                <span class="nav-label">{{ item.label }}</span>
+              }
+            </a>
+          }
         }
       </nav>
 
@@ -210,8 +227,13 @@ export class SidebarComponent {
   mobile = input(false);
   toggleCollapse = output<void>();
 
+  readonly environment = environment;
+
   navItems: NavItem[] = [
     { label: 'Dashboard', icon: 'pi-home', route: '/dashboard' },
+    ...(environment.demoMode
+      ? [{ label: 'Turnero (pantalla)', icon: 'pi-desktop', route: '/turnero-external', externalUrl: environment.kioskUrl + '/screen' } as NavItem]
+      : []),
     { label: 'Turnos', icon: 'pi-calendar', route: '/appointments' },
     { label: 'Clientes', icon: 'pi-users', route: '/clients' },
     { label: 'Fila', icon: 'pi-list', route: '/queue' },
@@ -228,8 +250,12 @@ export class SidebarComponent {
     const isAdminOrStaff = this.permissionService.isAdminOrStaff();
     const isProfessional = this.permissionService.hasRole('professional');
     const isReceptionist = this.permissionService.hasRole('receptionist');
-    
+
     return this.navItems.filter((item) => {
+      // Enlace externo (turnero) no tiene restricciones de rol
+      if (item.externalUrl) {
+        return true;
+      }
       // "Mis Turnos" solo para profesionales
       if (item.route === '/professional/today' && !isProfessional) {
         return false;

@@ -10,12 +10,19 @@ import { PaginatedResult, AuditContext } from '../../types/common.types.js';
 import { ApiError } from '../../utils/api-error.js';
 import { auditService } from '../audit/audit.service.js';
 import { AUDIT_ACTIONS, AUDIT_ENTITIES } from '../../constants/audit-actions.js';
+import { env } from '../../config/env.js';
 
 class ProfessionalsService {
   async create(
     input: CreateProfessionalInput,
     context: AuditContext
   ): Promise<IProfessionalDocument> {
+    if (env.DEMO_MODE) {
+      throw ApiError.forbidden(
+        'Modo demo: no se pueden crear profesionales.',
+        'DEMO_MODE_RESTRICTION'
+      );
+    }
     const professional = await Professional.create({
       ...input,
       services: input.services.map((id) => new Types.ObjectId(id)),
@@ -100,6 +107,12 @@ class ProfessionalsService {
     input: UpdateProfessionalInput,
     context: AuditContext
   ): Promise<IProfessionalDocument> {
+    if (env.DEMO_MODE) {
+      throw ApiError.forbidden(
+        'Modo demo: no se pueden editar profesionales.',
+        'DEMO_MODE_RESTRICTION'
+      );
+    }
     const professional = await this.findById(id);
     const before = professional.toObject();
 
@@ -125,6 +138,12 @@ class ProfessionalsService {
   }
 
   async delete(id: string, context: AuditContext): Promise<IProfessionalDocument> {
+    if (env.DEMO_MODE) {
+      throw ApiError.forbidden(
+        'Modo demo: no se pueden desactivar profesionales.',
+        'DEMO_MODE_RESTRICTION'
+      );
+    }
     const professional = await this.findById(id);
     const before = professional.toObject();
 

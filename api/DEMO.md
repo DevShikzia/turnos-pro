@@ -5,8 +5,8 @@ Configuración para usar Turnos PRO como **demo** (backend en Render, frontends 
 ## Comportamiento
 
 - **DEMO_MODE=true**:
-  - No se pueden crear **nuevos usuarios** (solo existe el recepcionista de prueba).
-  - No se pueden crear **nuevos clientes** (solo existe el cliente de prueba).
+  - No se pueden **crear** nuevos usuarios, clientes ni profesionales.
+  - No se pueden **editar ni desactivar** usuarios, clientes ni profesionales (solo consulta).
   - Los tickets generados desde el kiosk se marcan como `isDemo` y un **cron diario** los borra (días anteriores).
 - **Kiosk**: no se puede generar más de **un ticket pendiente por DNI por día**. Si ya tiene uno en espera, la API devuelve error y el kiosk muestra: *"Ya tiene un turno pendiente para hoy. Espere a ser atendido antes de solicitar otro."*
 

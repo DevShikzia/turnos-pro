@@ -8,6 +8,7 @@ import { StatsCardComponent } from '@shared/ui/stats-card/stats-card.component';
 import { LoadingComponent } from '@shared/ui/loading/loading.component';
 import { AppointmentsApi } from '../appointments/appointments.api';
 import { AppointmentDTO } from '@shared/models/api.types';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-dashboard',
@@ -30,6 +31,27 @@ import { AppointmentDTO } from '@shared/models/api.types';
           routerLink="/appointments/new"
         />
       </app-page-header>
+
+      @if (environment.demoMode) {
+        <div class="demo-turnero-card">
+          <div class="demo-turnero-content">
+            <i class="pi pi-desktop"></i>
+            <div>
+              <h3>Turnero – Pantalla de llamados</h3>
+              <p>Abre la pantalla pública donde se muestran los turnos llamados (listado en vivo).</p>
+            </div>
+            <a
+              [href]="environment.kioskUrl + '/screen'"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="turnero-link-btn"
+            >
+              <i class="pi pi-external-link"></i>
+              Abrir turnero
+            </a>
+          </div>
+        </div>
+      }
 
       @if (loading()) {
         <app-loading text="Cargando estadísticas..." />
@@ -135,6 +157,57 @@ import { AppointmentDTO } from '@shared/models/api.types';
     <p-toast />
   `,
   styles: [`
+    .demo-turnero-card {
+      background: linear-gradient(135deg, var(--color-primary-light) 0%, var(--color-surface) 100%);
+      border: 1px solid var(--color-primary);
+      border-radius: var(--radius-lg);
+      padding: var(--spacing-lg);
+      margin-bottom: var(--spacing-xl);
+    }
+
+    .demo-turnero-content {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-lg);
+      flex-wrap: wrap;
+    }
+
+    .demo-turnero-content > i:first-child {
+      font-size: 2rem;
+      color: var(--color-primary);
+    }
+
+    .demo-turnero-content h3 {
+      margin: 0 0 var(--spacing-xs);
+      font-size: 1.125rem;
+      color: var(--color-text);
+    }
+
+    .demo-turnero-content p {
+      margin: 0;
+      font-size: 0.875rem;
+      color: var(--color-text-secondary);
+    }
+
+    .turnero-link-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      padding: var(--spacing-sm) var(--spacing-md);
+      background: var(--color-primary);
+      color: white;
+      border-radius: var(--radius-md);
+      text-decoration: none;
+      font-weight: 500;
+      margin-left: auto;
+      transition: background var(--transition-fast);
+    }
+
+    .turnero-link-btn:hover {
+      background: var(--color-primary-dark, #4338ca);
+      color: white;
+    }
+
     .stats-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -231,6 +304,7 @@ import { AppointmentDTO } from '@shared/models/api.types';
 })
 export class DashboardPage implements OnInit {
   private appointmentsApi = inject(AppointmentsApi);
+  readonly environment = environment;
 
   loading = signal(true);
   todayAppointments = signal<AppointmentDTO[]>([]);
