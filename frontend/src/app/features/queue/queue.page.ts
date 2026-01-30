@@ -131,7 +131,17 @@ interface StatusOption {
                     [severity]="ticket.type === 'T' ? 'success' : 'info'"
                   />
                 </td>
-                <td>{{ ticket.dni }}</td>
+                <td>
+                  {{ ticket.dni }}
+                  @if (ticket.clientNeedsData) {
+                    <span
+                      class="client-needs-data-badge"
+                      [pTooltip]="'Este cliente debe completar sus datos antes de pedir un turno'"
+                    >
+                      <i class="pi pi-exclamation-triangle"></i>
+                    </span>
+                  }
+                </td>
                 <td>
                   <p-tag
                     [value]="getStatusLabel(ticket.status)"
@@ -263,6 +273,11 @@ interface StatusOption {
         display: block;
         margin-bottom: 0.5rem;
         font-weight: 500;
+      }
+      .client-needs-data-badge {
+        margin-left: 0.25rem;
+        color: var(--orange-500);
+        cursor: help;
       }
     `,
   ],
@@ -444,12 +459,20 @@ export class QueuePage implements OnInit, OnDestroy {
     }
 
     this.queueApi.call(ticket._id, { deskId: this.selectedDesk()! }).subscribe({
-      next: () => {
+      next: (response) => {
         this.messageService.add({
           severity: 'success',
           summary: 'Ticket llamado',
           detail: `${ticket.code} llamado en ${this.selectedDesk()}`,
         });
+        if (response.data?.clientNeedsData) {
+          this.messageService.add({
+            severity: 'warn',
+            summary: 'Completar datos del cliente',
+            detail: 'Este cliente necesita completar sus datos (nombre, teléfono, etc.) antes de pedir un turno.',
+            life: 8000,
+          });
+        }
         this.loadTickets();
       },
       error: () => {

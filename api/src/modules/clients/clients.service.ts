@@ -102,6 +102,24 @@ class ClientsService {
     return client;
   }
 
+  /**
+   * Crea un cliente mínimo desde el kiosco (solo DNI).
+   * No pasa por validación de modo demo. Usar solo desde queue.service.
+   */
+  async createMinimalFromKiosk(dni: string): Promise<IClientDocument> {
+    const existing = await Client.findOne({ dni });
+    if (existing) {
+      return existing;
+    }
+    const client = await Client.create({
+      fullName: 'Por completar',
+      dni: dni.trim(),
+      isActive: true,
+      incompleteData: true,
+    });
+    return client;
+  }
+
   async update(
     id: string,
     input: UpdateClientInput,
@@ -111,6 +129,10 @@ class ClientsService {
     const before = client.toObject();
 
     Object.assign(client, input);
+    // Si el cliente tenía datos incompletos y se actualiza con nombre real, marcar como completado
+    if (client.incompleteData && input.fullName && input.fullName.trim() !== 'Por completar') {
+      client.incompleteData = false;
+    }
     await client.save();
 
     await auditService.logUpdate(

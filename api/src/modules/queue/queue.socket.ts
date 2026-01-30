@@ -146,6 +146,7 @@ export function emitTicketUpdated(locationId: string, ticket: any): void {
     status: ticketStatus,
     deskId: ticketDeskId,
     calledAt: ticket.calledAt,
+    clientNeedsData: ticket.clientNeedsData === true,
   });
 
   // Si el ticket fue llamado (status = "called"), emitir evento específico al room general
@@ -155,6 +156,7 @@ export function emitTicketUpdated(locationId: string, ticket: any): void {
       code: ticket.code,
       deskId: ticketDeskId,
       calledAt: ticket.calledAt || new Date().toISOString(),
+      clientNeedsData: ticket.clientNeedsData === true,
     };
 
     console.log('[Socket] Emitiendo ticketCalled al room general:', {

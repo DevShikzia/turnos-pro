@@ -117,6 +117,10 @@ const queueTicketSchema = new Schema<IQueueTicketDocument>(
       type: Boolean,
       default: false,
     },
+    clientNeedsData: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

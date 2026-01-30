@@ -35,6 +35,10 @@ const clientSchema = new Schema<IClientDocument>(
       type: Boolean,
       default: true,
     },
+    incompleteData: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

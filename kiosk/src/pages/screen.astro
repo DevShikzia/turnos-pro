@@ -62,6 +62,9 @@ const SHOW_WEATHER = !!WEATHER_API_KEY;
           </div>
           <div id="call-desk" class="text-6xl md:text-8xl font-black text-white mb-8 drop-shadow-2xl animate-bounce"></div>
           <div id="call-code" class="text-7xl md:text-9xl font-black text-slate-900 drop-shadow-2xl"></div>
+          <div id="call-client-needs-data" class="hidden mt-6 px-6 py-4 bg-amber-600/90 text-white text-xl md:text-2xl font-semibold rounded-xl border-2 border-amber-700">
+            📋 Este cliente debe completar sus datos antes de pedir un turno
+          </div>
         </div>
       </div>
 
@@ -146,6 +149,7 @@ const SHOW_WEATHER = !!WEATHER_API_KEY;
       const callContentEl = document.getElementById('call-content');
       const callDeskEl = document.getElementById('call-desk');
       const callCodeEl = document.getElementById('call-code');
+      const callClientNeedsDataEl = document.getElementById('call-client-needs-data');
       const recentCallsEl = document.getElementById('recent-calls');
 
       let recentCalls = [];
@@ -275,6 +279,13 @@ const SHOW_WEATHER = !!WEATHER_API_KEY;
           if (callContentEl) callContentEl.classList.remove('hidden');
           if (callDeskEl) callDeskEl.textContent = ticket.deskId || 'VENT-?';
           if (callCodeEl) callCodeEl.textContent = ticket.code;
+          if (callClientNeedsDataEl) {
+            if (ticket.clientNeedsData) {
+              callClientNeedsDataEl.classList.remove('hidden');
+            } else {
+              callClientNeedsDataEl.classList.add('hidden');
+            }
+          }
 
           // Add to recent calls
           const newCall = {
@@ -301,6 +312,7 @@ const SHOW_WEATHER = !!WEATHER_API_KEY;
           currentCallTimeout = setTimeout(() => {
             if (noCallEl) noCallEl.classList.remove('hidden');
             if (callContentEl) callContentEl.classList.add('hidden');
+            if (callClientNeedsDataEl) callClientNeedsDataEl.classList.add('hidden');
           }, 30000);
 
           // Pulse animation

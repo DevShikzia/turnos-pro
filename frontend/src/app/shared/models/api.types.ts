@@ -347,6 +347,8 @@ export interface QueueTicketDTO {
   deskId?: string;
   receptionistId?: string;
   professionalId?: string;
+  /** true si el cliente fue creado desde kiosk y debe completar datos antes de pedir turno */
+  clientNeedsData?: boolean;
   createdAt: string;
   updatedAt: string;
 }

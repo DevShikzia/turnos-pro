@@ -39,6 +39,7 @@ export interface IQueueTicket {
   receptionistId?: Types.ObjectId;
   professionalId?: Types.ObjectId;
   isDemo?: boolean; // true si se creó en modo demo (para limpieza por cron)
+  clientNeedsData?: boolean; // true si el cliente fue creado desde kiosk y debe completar datos
   createdAt: Date;
   updatedAt: Date;
 }
@@ -84,6 +85,7 @@ export interface TicketDTO {
   deskId?: string;
   receptionistId?: string;
   professionalId?: string;
+  clientNeedsData?: boolean;
   createdAt: string;
   updatedAt: string;
 }

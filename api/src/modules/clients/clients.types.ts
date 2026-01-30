@@ -20,6 +20,7 @@ export interface IClient {
   email?: string;
   notes?: string;
   isActive: boolean;
+  incompleteData?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }

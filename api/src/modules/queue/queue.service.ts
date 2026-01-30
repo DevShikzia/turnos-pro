@@ -59,8 +59,15 @@ class QueueService {
       );
     }
 
-    // Buscar si el cliente tiene un turno para hoy
-    const client = await clientsService.findByDni(dni).catch(() => null);
+    // Buscar cliente por DNI; si no existe, crear uno mínimo desde kiosk
+    let client = await clientsService.findByDni(dni).catch(() => null);
+    let clientNeedsData = false;
+
+    if (!client) {
+      client = await clientsService.createMinimalFromKiosk(dni);
+      clientNeedsData = true;
+    }
+
     let appointmentId: Types.ObjectId | undefined;
     let ticketType: TicketType = 'C';
 
@@ -100,7 +107,7 @@ class QueueService {
     const seq = counter.seq;
     const code = `${ticketType}${String(seq).padStart(3, '0')}`;
 
-    // Crear ticket (marcar como demo si corresponde, para limpieza por cron)
+    // Crear ticket (marcar como demo si corresponde; clientNeedsData si se creó cliente desde kiosk)
     const ticket = await QueueTicket.create({
       dateKey,
       locationId: locId,
@@ -111,6 +118,7 @@ class QueueService {
       appointmentId,
       status: 'waiting',
       isDemo: env.DEMO_MODE || false,
+      clientNeedsData,
     });
 
     // Emitir evento Socket.io
@@ -254,6 +262,7 @@ class QueueService {
       deskId: ticket.deskId,
       calledAt: ticket.calledAt,
       locationId: locationId,
+      clientNeedsData: ticket.clientNeedsData,
     });
 
     return ticket;
