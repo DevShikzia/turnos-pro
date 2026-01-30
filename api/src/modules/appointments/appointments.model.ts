@@ -41,6 +41,10 @@ const appointmentSchema = new Schema<IAppointmentDocument>(
       type: String,
       maxlength: [500, 'Las notas no pueden exceder 500 caracteres'],
     },
+    isDemo: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

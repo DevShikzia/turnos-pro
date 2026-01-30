@@ -17,6 +17,7 @@ import { ClientsApi } from './clients.api';
 import { AppointmentsApi } from '../appointments/appointments.api';
 import { ClientDTO, AppointmentDTO } from '@shared/models/api.types';
 import { PermissionService } from '@core/services/permission.service';
+import { environment } from '@env';
 
 @Component({
   selector: 'app-clients-list',
@@ -39,11 +40,13 @@ import { PermissionService } from '@core/services/permission.service';
   template: `
     <div class="page-container">
       <app-page-header title="Clientes" subtitle="Gestiona tus clientes">
-        <p-button
-          label="Nuevo cliente"
-          icon="pi pi-plus"
-          routerLink="/clients/new"
-        />
+        @if (!environment.demoMode) {
+          <p-button
+            label="Nuevo cliente"
+            icon="pi pi-plus"
+            routerLink="/clients/new"
+          />
+        }
       </app-page-header>
 
       <!-- Search -->
@@ -69,11 +72,13 @@ import { PermissionService } from '@core/services/permission.service';
           title="No hay clientes"
           message="Comienza agregando tu primer cliente"
         >
-          <p-button
-            label="Agregar cliente"
-            icon="pi pi-plus"
-            routerLink="/clients/new"
-          />
+          @if (!environment.demoMode) {
+            <p-button
+              label="Agregar cliente"
+              icon="pi pi-plus"
+              routerLink="/clients/new"
+            />
+          }
         </app-empty-state>
       } @else {
         <div class="card">
@@ -119,14 +124,16 @@ import { PermissionService } from '@core/services/permission.service';
                 </td>
                 <td>
                   <div class="actions">
-                    <p-button
-                      icon="pi pi-calendar-plus"
-                      [rounded]="true"
-                      severity="success"
-                      size="small"
-                      (onClick)="createAppointment(client)"
-                      pTooltip="Sacar turno"
-                    />
+                    @if (!environment.demoMode || client._id === environment.demoClientId) {
+                      <p-button
+                        icon="pi pi-calendar-plus"
+                        [rounded]="true"
+                        severity="success"
+                        size="small"
+                        (onClick)="createAppointment(client)"
+                        pTooltip="Sacar turno"
+                      />
+                    }
                     <p-button
                       icon="pi pi-calendar"
                       [rounded]="true"
@@ -205,6 +212,7 @@ export class ClientsListPage implements OnInit {
   private messageService = inject(MessageService);
   permissionService = inject(PermissionService);
 
+  environment = environment;
   loading = signal(true);
   tableLoading = signal(false);
   clients = signal<ClientDTO[]>([]);

@@ -25,6 +25,7 @@ import {
   ProfessionalDTO,
   AvailableSlot,
 } from '@shared/models/api.types';
+import { environment } from '@env';
 
 interface SlotOption {
   label: string;
@@ -526,6 +527,13 @@ export class AppointmentsFormPage implements OnInit {
   ngOnInit(): void {
     this.appointmentId = this.route.snapshot.params['id'];
     const clientIdParam = this.route.snapshot.queryParams['clientId'];
+
+    if (environment.demoMode && !this.appointmentId) {
+      if (clientIdParam !== environment.demoClientId) {
+        this.router.navigate(['/appointments']);
+        return;
+      }
+    }
 
     if (this.appointmentId) {
       this.isEditing.set(true);

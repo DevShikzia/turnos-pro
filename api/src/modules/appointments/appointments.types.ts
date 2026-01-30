@@ -24,6 +24,7 @@ export interface IAppointment {
   serviceId: Types.ObjectId;
   createdBy: Types.ObjectId;
   notes?: string;
+  isDemo?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }

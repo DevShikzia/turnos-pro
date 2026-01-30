@@ -25,6 +25,7 @@ import {
   ClientDTO,
   ServiceDTO,
 } from '@shared/models/api.types';
+import { environment } from '@env';
 
 interface StatusOption {
   label: string;
@@ -55,11 +56,13 @@ interface StatusOption {
   template: `
     <div class="page-container">
       <app-page-header title="Turnos" [subtitle]="pageSubtitle">
-        <p-button
-          label="Nuevo turno"
-          icon="pi pi-plus"
-          routerLink="/appointments/new"
-        />
+        @if (!environment.demoMode) {
+          <p-button
+            label="Nuevo turno"
+            icon="pi pi-plus"
+            routerLink="/appointments/new"
+          />
+        }
       </app-page-header>
 
       <!-- Filters -->
@@ -348,6 +351,7 @@ interface StatusOption {
   `],
 })
 export class AppointmentsListPage implements OnInit {
+  environment = environment;
   private route = inject(ActivatedRoute);
   private appointmentsApi = inject(AppointmentsApi);
   private professionalsApi = inject(ProfessionalsApi);

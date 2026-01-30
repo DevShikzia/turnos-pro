@@ -4,6 +4,7 @@ import '../styles/globals.css';
 
 const API_BASE_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:8080';
 const LOCATION_ID = import.meta.env.PUBLIC_LOCATION_ID || 'main';
+const KIOSK_API_KEY = import.meta.env.PUBLIC_KIOSK_API_KEY || '';
 ---
 
 <!doctype html>
@@ -89,7 +90,7 @@ const LOCATION_ID = import.meta.env.PUBLIC_LOCATION_ID || 'main';
       </div>
     </div>
 
-    <script define:vars={{ apiBaseUrl: API_BASE_URL, locationId: LOCATION_ID }}>
+    <script define:vars={{ apiBaseUrl: API_BASE_URL, locationId: LOCATION_ID, kioskApiKey: KIOSK_API_KEY }}>
 
       const dniInput = document.getElementById('dni-input');
       const submitBtn = document.getElementById('submit-btn');
@@ -131,11 +132,11 @@ const LOCATION_ID = import.meta.env.PUBLIC_LOCATION_ID || 'main';
         hideError();
 
         try {
+          const headers = { 'Content-Type': 'application/json' };
+          if (kioskApiKey) headers['X-Kiosk-Key'] = kioskApiKey;
           const response = await fetch(`${apiBaseUrl}/queue/kiosk/ticket`, {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
+            headers,
             body: JSON.stringify({
               dni,
               locationId: locationId,

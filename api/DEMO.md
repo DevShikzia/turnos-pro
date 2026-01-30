@@ -7,7 +7,8 @@ Configuración para usar Turnos PRO como **demo** (backend en Render, frontends 
 - **DEMO_MODE=true**:
   - No se pueden **crear** nuevos usuarios, clientes ni profesionales.
   - No se pueden **editar ni desactivar** usuarios, clientes ni profesionales (solo consulta).
-  - Los tickets generados desde el kiosk se marcan como `isDemo` y un **cron diario** los borra (días anteriores).
+  - Solo se pueden sacar turnos para el **cliente de prueba** (`DEMO_CLIENT_ID`).
+  - **Limpieza cada 10 minutos**: se eliminan todos los turnos y tickets de la fila marcados como demo, para que no se acumulen datos.
 - **Kiosk**: no se puede generar más de **un ticket pendiente por DNI por día**. Si ya tiene uno en espera, la API devuelve error y el kiosk muestra: *"Ya tiene un turno pendiente para hoy. Espere a ser atendido antes de solicitar otro."*
 
 ## Variables de entorno (API – Render)

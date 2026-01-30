@@ -63,6 +63,7 @@ En la configuración del sitio en Netlify, ve a **Site settings** → **Environm
 | `DEMO_MODE` | Si es `true`, muestra banner "Modo demo" y aviso en login | `false` |
 | `DEMO_USER_EMAIL` | Email del usuario de prueba (se pre-carga en el login) | *(vacío)* |
 | `DEMO_USER_PASSWORD` | Contraseña del usuario de prueba (se pre-carga en el login en modo demo) | *(vacío)* |
+| `DEMO_CLIENT_ID` | ID del cliente habilitado en modo demo (solo se permite crear turnos para este cliente) | *(vacío)* |
 
 ### 4. Ejemplo de Configuración
 
@@ -81,8 +82,9 @@ KIOSK_URL=https://turnos-pro-kiosk.netlify.app
 DEMO_MODE=true
 DEMO_USER_EMAIL=recepcionista@demo.com
 DEMO_USER_PASSWORD=tu_contraseña_demo
+DEMO_CLIENT_ID=507f1f77bcf86cd799439011
 ```
-La API debe tener `DEMO_MODE=true` y los IDs de usuario/cliente en Render. Ver `api/DEMO.md`. En modo demo, email y contraseña se cargan automáticamente en el login.
+La API debe tener `DEMO_MODE=true` y los IDs de usuario/cliente en Render. Ver `api/DEMO.md`. En modo demo, email y contraseña se cargan automáticamente en el login. `DEMO_CLIENT_ID` debe coincidir con el de la API; en el panel no se muestra "Nuevo cliente" ni "Nuevo turno", y solo se permite "Sacar turno" para ese cliente.
 
 ### 5. Deploy
 

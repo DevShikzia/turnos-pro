@@ -29,6 +29,16 @@ export const createTicketFromKiosk = asyncHandler(async (req: Request, res: Resp
 });
 
 /**
+ * GET /queue/kiosk/screen
+ * Estado de la pantalla pública (llamado actual + últimos llamados). Persiste al actualizar/recargar.
+ */
+export const getScreenState = asyncHandler(async (req: Request, res: Response) => {
+  const locationId = ((req.query.locationId as string) || 'main') as string;
+  const state = await queueService.getScreenState(locationId);
+  res.json({ data: state });
+});
+
+/**
  * GET /queue/kiosk/status/:code
  * Obtiene estado de un ticket por código (kiosco)
  */

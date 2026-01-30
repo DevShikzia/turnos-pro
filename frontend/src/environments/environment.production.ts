@@ -7,4 +7,5 @@ export const environment = {
   demoMode: false,
   demoUserEmail: '',
   demoUserPassword: '',
+  demoClientId: '',
 };

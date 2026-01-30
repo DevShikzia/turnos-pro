@@ -12,6 +12,7 @@ import {
 } from './queue.schema.js';
 import {
   createTicketFromKiosk,
+  getScreenState,
   getTicketStatusByCode,
   getTickets,
   getTicketById,
@@ -23,6 +24,7 @@ import {
   getDesks,
 } from './queue.controller.js';
 import { PERMISSIONS } from '../../constants/permissions.js';
+import { kioskApiKeyMiddleware } from '../../middlewares/kiosk-api-key.middleware.js';
 
 const router = Router();
 
@@ -44,6 +46,17 @@ const kioskRateLimit = rateLimit({
   legacyHeaders: false,
 });
 
+// Rate limit más permisivo para pantalla (solo lectura, se recarga al actualizar)
+const screenRateLimit = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minuto
+  max: 60, // 60 requests por minuto (pantalla puede pedir al cargar + al reconectar)
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Aplicar API key opcional a todas las rutas /queue/kiosk/*
+router.use('/kiosk', kioskApiKeyMiddleware);
+
 // POST /queue/kiosk/ticket - Generar ticket (público, con rate limit)
 router.post(
   '/kiosk/ticket',
@@ -51,6 +64,9 @@ router.post(
   validate({ body: createTicketSchema }),
   createTicketFromKiosk
 );
+
+// GET /queue/kiosk/screen - Estado pantalla (llamado actual + últimos). Persiste al recargar.
+router.get('/kiosk/screen', screenRateLimit, getScreenState);
 
 // GET /queue/kiosk/status/:code - Estado de ticket (público)
 router.get(

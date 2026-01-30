@@ -19,6 +19,8 @@ const envSchema = z.object({
   DEMO_MODE: z.string().transform((v) => v === 'true').default('false'),
   DEMO_USER_ID: z.string().optional(), // ID del usuario recepcionista de prueba
   DEMO_CLIENT_ID: z.string().optional(), // ID del cliente de prueba
+  // Kiosk: clave opcional para validar peticiones de /queue/kiosk/* (header X-Kiosk-Key)
+  KIOSK_API_KEY: z.string().optional().transform((v) => (v && v.length > 0 ? v : undefined)),
 });
 
 const parsed = envSchema.safeParse(process.env);

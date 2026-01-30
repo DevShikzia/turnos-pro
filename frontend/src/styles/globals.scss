@@ -8,6 +8,15 @@
   box-sizing: border-box;
 }
 
+// PrimeIcons: evitar que los iconos colapsen o no se muestren (font carga async)
+.pi {
+  display: inline-block;
+  min-width: 1em;
+  font-style: normal;
+  speak: none;
+  -webkit-font-smoothing: antialiased;
+}
+
 html,
 body {
   margin: 0;

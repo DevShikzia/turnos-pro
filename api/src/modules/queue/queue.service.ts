@@ -193,6 +193,55 @@ class QueueService {
   }
 
   /**
+   * Estado de la pantalla pública (llamado actual + últimos llamados).
+   * Usado al cargar/actualizar la pantalla para que persista el estado.
+   */
+  async getScreenState(locationId: string = 'main'): Promise<{
+    currentCall: { code: string; deskId: string; calledAt: Date; clientNeedsData?: boolean } | null;
+    recentCalls: Array<{ code: string; deskId: string; calledAt: Date }>;
+  }> {
+    const now = DateTime.now().setZone('America/Argentina/Buenos_Aires');
+    const dateKey = now.toFormat('yyyy-MM-dd');
+    const locId = locationId || 'main';
+
+    const [currentTicket, recentTickets] = await Promise.all([
+      QueueTicket.findOne({
+        dateKey,
+        locationId: locId,
+        status: 'called',
+      })
+        .sort({ calledAt: -1 })
+        .lean(),
+      QueueTicket.find({
+        dateKey,
+        locationId: locId,
+        status: { $in: ['called', 'in_service', 'done'] },
+        calledAt: { $exists: true, $ne: null },
+      })
+        .sort({ calledAt: -1 })
+        .limit(5)
+        .lean(),
+    ]);
+
+    const currentCall = currentTicket
+      ? {
+          code: currentTicket.code,
+          deskId: currentTicket.deskId || 'VENT-?',
+          calledAt: currentTicket.calledAt!,
+          clientNeedsData: !!currentTicket.clientNeedsData,
+        }
+      : null;
+
+    const recentCalls = recentTickets.map((t) => ({
+      code: t.code,
+      deskId: t.deskId || 'VENT-?',
+      calledAt: t.calledAt!,
+    }));
+
+    return { currentCall, recentCalls };
+  }
+
+  /**
    * Obtiene un ticket por código (para kiosco)
    */
   async getTicketByCode(code: string, locationId: string = 'main'): Promise<IQueueTicketDocument | null> {
@@ -448,6 +497,14 @@ class QueueService {
       dateKey: { $lt: todayKey },
     });
 
+    return result.deletedCount || 0;
+  }
+
+  /**
+   * Elimina TODOS los tickets demo (para cron cada 10 min en modo demo).
+   */
+  async cleanupAllDemoTickets(): Promise<number> {
+    const result = await QueueTicket.deleteMany({ isDemo: true });
     return result.deletedCount || 0;
   }
 

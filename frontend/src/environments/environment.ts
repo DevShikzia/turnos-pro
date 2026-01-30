@@ -10,4 +10,5 @@ export const environment = {
   demoMode: false,
   demoUserEmail: '',
   demoUserPassword: '',
+  demoClientId: '', // En modo demo solo se permiten turnos para este cliente
 };

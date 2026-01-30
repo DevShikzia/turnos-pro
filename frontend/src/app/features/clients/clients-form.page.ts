@@ -10,6 +10,7 @@ import { MessageService } from 'primeng/api';
 import { PageHeaderComponent } from '@shared/ui/page-header/page-header.component';
 import { LoadingComponent } from '@shared/ui/loading/loading.component';
 import { ClientsApi } from './clients.api';
+import { environment } from '@env';
 
 @Component({
   selector: 'app-clients-form',
@@ -207,6 +208,11 @@ export class ClientsFormPage implements OnInit {
 
   ngOnInit(): void {
     this.clientId = this.route.snapshot.params['id'];
+
+    if (environment.demoMode && !this.clientId) {
+      this.router.navigate(['/clients']);
+      return;
+    }
 
     if (this.clientId) {
       this.isEditing.set(true);

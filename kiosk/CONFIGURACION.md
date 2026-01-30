@@ -15,6 +15,8 @@
    PUBLIC_LOCATION_ID=main
    PUBLIC_WEATHER_API_KEY="tu_api_key_de_openweathermap"
    PUBLIC_WEATHER_CITY="Buenos Aires,AR"
+   # Opcional: clave única para el kiosk (la misma que KIOSK_API_KEY en la API). No vence.
+   # PUBLIC_KIOSK_API_KEY=tu_clave_secreta
    ```
 
    **Nota sobre el clima**: Para mostrar el clima, necesitas obtener una API key gratuita de [OpenWeatherMap](https://openweathermap.org/api). Es opcional - si no la configuras, simplemente mostrará "API no configurada". La ciudad se especifica como "Ciudad,País" (ej: "Buenos Aires,AR", "Córdoba,AR").

@@ -16,12 +16,22 @@ import { clientsService } from '../clients/clients.service.js';
 import { professionalsService } from '../professionals/professionals.service.js';
 import { servicesService } from '../services/services.service.js';
 import { availabilityService } from '../availability/availability.service.js';
+import { env } from '../../config/env.js';
 
 class AppointmentsService {
   async create(
     input: CreateAppointmentInput,
     context: AuditContext
   ): Promise<IAppointmentDocument> {
+    if (env.DEMO_MODE && env.DEMO_CLIENT_ID) {
+      if (input.clientId !== env.DEMO_CLIENT_ID) {
+        throw ApiError.forbidden(
+          'Modo demo: solo se pueden sacar turnos para el cliente de prueba autorizado.',
+          'DEMO_MODE_RESTRICTION'
+        );
+      }
+    }
+
     // Validar que el cliente, profesional y servicio existan y estén activos
     const [client, professional, service] = await Promise.all([
       clientsService.findActiveById(input.clientId),
@@ -123,6 +133,7 @@ class AppointmentsService {
       serviceId: new Types.ObjectId(input.serviceId),
       createdBy: context.actorId,
       notes: input.notes,
+      isDemo: env.DEMO_MODE || false,
     });
 
     await auditService.logCreate(
@@ -215,6 +226,13 @@ class AppointmentsService {
   ): Promise<IAppointmentDocument> {
     const appointment = await this.findById(id);
     const before = appointment.toObject();
+
+    if (env.DEMO_MODE && env.DEMO_CLIENT_ID && input.clientId && input.clientId !== env.DEMO_CLIENT_ID) {
+      throw ApiError.forbidden(
+        'Modo demo: solo se pueden asignar turnos al cliente de prueba autorizado.',
+        'DEMO_MODE_RESTRICTION'
+      );
+    }
 
     // No permitir editar turnos cancelados
     if (appointment.status === APPOINTMENT_STATUS.CANCELLED) {
@@ -418,6 +436,14 @@ class AppointmentsService {
         'INVALID_STATUS_TRANSITION'
       );
     }
+  }
+
+  /**
+   * Elimina todos los turnos marcados como demo (cron en modo demo).
+   */
+  async cleanupDemoAppointments(): Promise<number> {
+    const result = await Appointment.deleteMany({ isDemo: true });
+    return result.deletedCount || 0;
   }
 }
 

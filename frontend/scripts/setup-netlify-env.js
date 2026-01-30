@@ -17,6 +17,7 @@ const requestTimeoutMs = process.env.REQUEST_TIMEOUT_MS || '30000';
 const demoMode = process.env.DEMO_MODE === 'true';
 const demoUserEmail = process.env.DEMO_USER_EMAIL || '';
 const demoUserPassword = process.env.DEMO_USER_PASSWORD || '';
+const demoClientId = process.env.DEMO_CLIENT_ID || '';
 
 // Escapar para string en TypeScript (comillas y backslash)
 function escapeForTs(str) {
@@ -36,6 +37,7 @@ export const environment = {
   demoMode: ${demoMode},
   demoUserEmail: '${escapeForTs(demoUserEmail)}',
   demoUserPassword: '${escapeForTs(demoUserPassword)}',
+  demoClientId: '${escapeForTs(demoClientId)}',
 };
 `;
 
